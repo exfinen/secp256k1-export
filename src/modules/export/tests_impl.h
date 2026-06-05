@@ -122,12 +122,42 @@ static void test_fe_set_b32_limit(void) {
     CHECK(ret == 0);
 }
 
+static void test_fe_set_int(void) {
+    secp256k1_fe r;
+    unsigned char out[32];
+
+    /* 0 -> is_zero */
+    secp256k1_export_fe_set_int(&r, 0);
+    CHECK(secp256k1_export_fe_is_zero(&r));
+
+    /* 1 -> last byte 0x01, rest 0x00 */
+    secp256k1_export_fe_set_int(&r, 1);
+    secp256k1_export_fe_normalize(&r);
+    secp256k1_export_fe_get_b32(out, &r);
+    CHECK(out[31] == 0x01);
+    {
+        size_t i;
+        for (i = 0; i < 31; i++) CHECK(out[i] == 0x00);
+    }
+
+    /* 42 -> last byte 0x2a, rest 0x00 */
+    secp256k1_export_fe_set_int(&r, 42);
+    secp256k1_export_fe_normalize(&r);
+    secp256k1_export_fe_get_b32(out, &r);
+    CHECK(out[31] == 0x2a);
+    {
+        size_t i;
+        for (i = 0; i < 31; i++) CHECK(out[i] == 0x00);
+    }
+}
+
 static void run_export_tests(void) {
     test_gej_to_ge();
     test_group_serialize();
     test_group_mult();
     test_fe_set_b32_mod();
     test_fe_set_b32_limit();
+    test_fe_set_int();
 }
 
 #endif /* SECP256K1_MODULE_EXPORT_TESTS_H */
